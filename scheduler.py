@@ -10,8 +10,9 @@ class GameNightScheduler:
         self.schedule: list[dict] = []
 
     def add_game(self, game: str) -> None:
-        """Add a game to the rotation."""
-        self.games.append(game)
+        """Add a game to the rotation. Skips duplicates."""
+        if game not in self.games:
+            self.games.append(game)
 
     def get_games(self) -> list[str]:
         """Return the current game list."""
