@@ -1,5 +1,6 @@
 """Game Night Scheduler — plan and manage your group's weekly game rotation."""
 
+import random
 from datetime import date, timedelta
 
 
@@ -10,8 +11,13 @@ class GameNightScheduler:
         self.schedule: list[dict] = []
 
     def add_game(self, game: str) -> None:
-        """Add a game to the rotation."""
+        """Add a game to the rotation and shuffle for varied order."""
         self.games.append(game)
+        random.shuffle(self.games)
+
+    def pick_random(self) -> str | None:
+        """Pick a random game from the rotation."""
+        return random.choice(self.games) if self.games else None
 
     def get_games(self) -> list[str]:
         """Return the current game list."""
