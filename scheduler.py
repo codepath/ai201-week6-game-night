@@ -38,3 +38,15 @@ class GameNightScheduler:
     def get_schedule(self) -> list[dict]:
         """Return the current schedule."""
         return self.schedule.copy()
+
+    def summary(self) -> str:
+        """Return a readable summary of the current rotation and schedule."""
+        if not self.games:
+            return f"Host: {self.host} | No games in rotation yet."
+        game_list = ", ".join(self.games)
+        weeks_planned = len(self.schedule)
+        return (
+            f"Host: {self.host}\n"
+            f"Games in rotation ({len(self.games)}): {game_list}\n"
+            f"Weeks scheduled: {weeks_planned}"
+        )
