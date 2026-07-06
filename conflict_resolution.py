@@ -1,7 +1,9 @@
 """
-INSTRUCTOR REFERENCE — DO NOT COMMIT TO ANY BRANCH
-===================================================
-This file shows the correct resolved version of scheduler.py after the demo conflict.
+INSTRUCTOR REFERENCE — ANSWER KEY. KEEP OFF SCREEN-SHARE.
+=========================================================
+This file lives only on main (it disappears from the file tree once you check
+out feature/random-picker for the demo). It shows the correct resolved version
+of scheduler.py after the demo conflict.
 
 The conflict is in add_game(). Here is what each branch was trying to do:
 
