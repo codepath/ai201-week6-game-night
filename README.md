@@ -206,7 +206,7 @@ abc1234 fix: prevent duplicate games in rotation when add_game is called
 123abc9 feat: initialize game night scheduler with add and schedule methods
 ```
 
-> "Linear history. No merge commit. If you squinted at this log, you'd never know two people worked on this in parallel. That's the whole point of rebasing before you open a PR — you give the reviewer a clean story."
+> "Linear history. No merge commit. If you squinted at this log, you'd never know two people worked on this in parallel. And notice why this rebase was safe: both branches lived only on this machine — nothing had been pushed. Local cleanup before anything is shared is the case where rebase shines."
 
 ---
 
