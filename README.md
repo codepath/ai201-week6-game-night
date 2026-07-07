@@ -36,13 +36,17 @@ cd ai201-week6-game-night
 pip install -r requirements.txt
 ```
 
-### 3. Confirm both branches exist
+### 3. Create local copies of both feature branches
+
+A fresh clone only gives you a local `main` — the feature branches exist only as remote-tracking refs (`origin/feature/...`), and `git rebase feature/dedup-games` will fail with `invalid upstream` unless a local branch by that name exists. Create both:
 
 ```bash
-git branch -a
+git branch feature/dedup-games origin/feature/dedup-games
+git branch feature/random-picker origin/feature/random-picker
+git branch
 ```
 
-You should see `main`, `feature/dedup-games`, and `feature/random-picker`.
+You should now see local `main`, `feature/dedup-games`, and `feature/random-picker`.
 
 ### 4. Run tests on main to confirm the baseline
 
@@ -50,7 +54,7 @@ You should see `main`, `feature/dedup-games`, and `feature/random-picker`.
 pytest tests/ -v
 ```
 
-Expected output — 3 pass, 2 skip-worthy (the dedup and pick_random tests will fail on main, which is expected and intentional):
+Expected output — 3 pass, 3 fail (the dedup and both pick_random tests fail on main, which is expected and intentional):
 
 ```bash
 PASSED tests/test_scheduler.py::test_add_game
@@ -89,7 +93,7 @@ git log --oneline --all --graph
 
 Walk through the history out loud:
 
-> "Here's what we've got. `main` has three commits — the base scheduler, a summary method, and the test suite. Then two contributors branched off and went in different directions. One was fixing a data quality issue — duplicate games in the rotation. The other was adding a feature — random game selection. Neither one knew what the other was doing."
+> "Here's what we've got. `main` has the base scheduler, a summary method, and the test suite (plus this instructor guide). Then two contributors branched off and went in different directions. One was fixing a data quality issue — duplicate games in the rotation. The other was adding a feature — random game selection. Neither one knew what the other was doing."
 
 ---
 
@@ -133,12 +137,18 @@ Open `scheduler.py` in VS Code. The conflict section will look like this:
         """Add a game to the rotation and shuffle for varied order."""
         self.games.append(game)
         random.shuffle(self.games)
->>>>>>> feat: add pick_random method and shuffle rotation on add
+
+    def pick_random(self) -> str | None:
+        """Pick a random game from the rotation."""
+        return random.choice(self.games) if self.games else None
+>>>>>>> b57ba5c (feat: add pick_random method and shuffle rotation on add)
 ```
+
+Note that the **entire `pick_random()` method is inside the conflict block**, on the incoming side — it was added directly below `add_game()` in the same commit, so git's conflict hunk swallows it along with the shuffle. This matters: clicking "Accept Current Change" wouldn't just discard the shuffle, it would silently delete `pick_random()` too, and both of its tests would fail.
 
 Read both sides out loud:
 
-> "HEAD is `feature/dedup-games` — it added a duplicate check before the append. The incoming change — `feature/random-picker` — changed the docstring and added a shuffle after the append. Git marked both versions and stopped. It doesn't know which one is right. That's our job."
+> "HEAD is `feature/dedup-games` — it added a duplicate check before the append. The incoming change — `feature/random-picker` — changed the docstring, added a shuffle after the append, and brought the whole new `pick_random()` method with it. Git marked both versions and stopped. It doesn't know which one is right. That's our job."
 
 > "Before I touch anything — what was each change *trying to do*? The dedup branch was preventing data quality issues: the same game appearing twice in the rotation. The random-picker branch was trying to vary the order. Those are different goals. A resolution that only picks one side loses something."
 
@@ -146,22 +156,26 @@ Read both sides out loud:
 
 ### Resolve the conflict in VS Code (3 min)
 
-Click **"Accept Both Changes"** in VS Code's conflict UI as a starting point. This gives you both versions stacked. Now manually edit the method to look like this:
+Click **"Accept Both Changes"** in VS Code's conflict UI as a starting point. This gives you both versions stacked. Now manually edit so `add_game()` keeps the dedup check and drops the shuffle, while `pick_random()` stays intact below it:
 
 ```python
     def add_game(self, game: str) -> None:
         """Add a game to the rotation. Skips duplicates."""
         if game not in self.games:
             self.games.append(game)
+
+    def pick_random(self) -> str | None:
+        """Pick a random game from the rotation."""
+        return random.choice(self.games) if self.games else None
 ```
 
 Narrate as you edit:
 
-> "I'm keeping the dedup check — that's the whole point of `feature/dedup-games`. I'm dropping the shuffle. Here's why: `pick_random()` is already on this branch, and it uses `random.choice()` to pick unpredictably at call time. Shuffling on every `add_game()` call is a side effect that callers don't expect — every time someone adds a game, the order of the list silently changes. That's a bug waiting to happen. The randomness belongs in `pick_random()`, not here."
+> "I'm keeping the dedup check — that's the whole point of `feature/dedup-games`. I'm dropping the shuffle. Here's why: `pick_random()` came in on this same commit, and it uses `random.choice()` to pick unpredictably at call time. Shuffling on every `add_game()` call is a side effect that callers don't expect — every time someone adds a game, the order of the list silently changes. That's a bug waiting to happen. The randomness belongs in `pick_random()`, not here."
 
-Also verify that `pick_random()` is present in the file — it should be, since it came from the `feature/random-picker` commit but isn't part of the conflict. Point it out:
+Then point at `pick_random()`:
 
-> "And `pick_random()` is still here — unaffected by the conflict. That feature is fully preserved."
+> "And notice `pick_random()` was *inside* the conflict block — it rode in on the incoming side. If I'd just clicked 'Accept Current Change' to keep the dedup version, this whole method would have vanished and both of its tests would fail. That's why you read the entire hunk before clicking a button."
 
 Make sure `import random` is at the top of the file (it was added by `feature/random-picker`).
 
@@ -192,7 +206,7 @@ abc1234 fix: prevent duplicate games in rotation when add_game is called
 123abc9 feat: initialize game night scheduler with add and schedule methods
 ```
 
-> "Linear history. No merge commit. If you squinted at this log, you'd never know two people worked on this in parallel. That's the whole point of rebasing before you open a PR — you give the reviewer a clean story."
+> "Linear history. No merge commit. If you squinted at this log, you'd never know two people worked on this in parallel. And notice why this rebase was safe: both branches lived only on this machine — nothing had been pushed. Local cleanup before anything is shared is the case where rebase shines."
 
 ---
 
@@ -230,3 +244,11 @@ PASSED tests/test_scheduler.py::test_pick_random_returns_none_when_rotation_is_e
 **`import random` is missing from the top of the file** — Add it manually below the existing imports. It was introduced by `feature/random-picker` but may have been dropped during an imperfect resolution.
 
 **Accidentally committed during rebase** — Run `git rebase --abort` to return to the pre-rebase state and start over.
+
+**Resetting after a practice run** — Once the rebase completes, `feature/random-picker` has moved. To restore the pre-demo state for the live run:
+
+```bash
+git checkout feature/random-picker
+git reset --hard origin/feature/random-picker
+git checkout main
+```
