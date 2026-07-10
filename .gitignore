@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Test tooling
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/

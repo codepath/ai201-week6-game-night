@@ -30,13 +30,22 @@ git clone <github-url>
 cd ai201-week6-game-night
 ```
 
-### 2. Install dependencies
+### 2. Create and activate a virtual environment
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+```
+
+You should see `(.venv)` in your prompt. Do this before installing anything — it keeps the demo's dependencies out of your system Python.
+
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Create local copies of both feature branches
+### 4. Create local copies of both feature branches
 
 A fresh clone only gives you a local `main` — the feature branches exist only as remote-tracking refs (`origin/feature/...`), and `git rebase feature/dedup-games` will fail with `invalid upstream` unless a local branch by that name exists. Create both:
 
@@ -48,7 +57,7 @@ git branch
 
 You should now see local `main`, `feature/dedup-games`, and `feature/random-picker`.
 
-### 4. Run tests on main to confirm the baseline
+### 5. Run tests on main to confirm the baseline
 
 ```bash
 pytest tests/ -v
@@ -67,7 +76,7 @@ FAILED tests/test_scheduler.py::test_pick_random_returns_none_when_rotation_is_e
 
 The 3 failing tests are the spec for what the resolved code needs to satisfy. After conflict resolution, all 6 should pass.
 
-### 5. Open the repo in VS Code
+### 6. Open the repo in VS Code
 
 ```bash
 code .
@@ -75,7 +84,7 @@ code .
 
 Make sure the **GitLens** or built-in **Source Control** panel is visible. During the demo, VS Code will show the conflict markers inline with Accept/Ignore buttons — that's the UI you'll resolve in.
 
-### 6. Keep `conflict_resolution.py` open as a reference tab
+### 7. Keep `conflict_resolution.py` open as a reference tab
 
 This file shows the correct resolved version with annotations. Do not share your screen while this tab is open — it's for your reference only. You can open it on a second monitor or a separate window.
 
